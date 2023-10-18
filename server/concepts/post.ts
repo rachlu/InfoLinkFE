@@ -32,6 +32,21 @@ export default class PostConcept {
     return await this.getPosts({ author });
   }
 
+  async getAuthor(_id: ObjectId) {
+    const post = await this.posts.readOne({ _id });
+    if (post === null) {
+      throw new NotFoundError("Post not found");
+    }
+    return post.author;
+  }
+
+  async notAuthor(author: ObjectId, _id: ObjectId) {
+    const comment = await this.posts.readOne({ _id, author });
+    if (comment) {
+      throw new NotAllowedError("User is Author of Comment");
+    }
+  }
+
   async update(_id: ObjectId, update: Partial<PostDoc>) {
     this.sanitizeUpdate(update);
     await this.posts.updateOne({ _id }, update);
@@ -50,6 +65,13 @@ export default class PostConcept {
     }
     if (post.author.toString() !== user.toString()) {
       throw new PostAuthorNotMatchError(user, _id);
+    }
+  }
+
+  async isPost(_id: ObjectId) {
+    const post = await this.posts.readOne({ _id });
+    if (post === null) {
+      throw new NotFoundError("Post does not exist");
     }
   }
 

@@ -3,6 +3,7 @@ import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/formatDate";
 import { storeToRefs } from "pinia";
 import { fetchy } from "../../utils/fetchy";
+import TagListComponent from "../Tag/TagListComponent.vue";
 
 const props = defineProps(["post"]);
 const emit = defineEmits(["editPost", "refreshPosts"]);
@@ -19,6 +20,7 @@ const deletePost = async () => {
 </script>
 
 <template>
+  <TagListComponent :post="post" :currentUsername="currentUsername" />
   <p class="author">{{ props.post.author }}</p>
   <p>{{ props.post.content }}</p>
   <div class="base">

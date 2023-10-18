@@ -1,6 +1,15 @@
+import BlockedItemConcept from "./concepts/blockedItem";
+import CommentConcept from "./concepts/comment";
+import CountConcept from "./concepts/count";
+import EditableConcept from "./concepts/editable";
 import FriendConcept from "./concepts/friend";
+import LikeConcept from "./concepts/like";
 import PostConcept from "./concepts/post";
+import ReportConcept from "./concepts/report";
+import TagConcept from "./concepts/tag";
+import TimeoutConcept from "./concepts/timeout";
 import UserConcept from "./concepts/user";
+import VerifiedItemConcept from "./concepts/verifiedItem";
 import WebSessionConcept from "./concepts/websession";
 
 // App Definition using concepts
@@ -8,3 +17,14 @@ export const WebSession = new WebSessionConcept();
 export const User = new UserConcept();
 export const Post = new PostConcept();
 export const Friend = new FriendConcept();
+export const Timeout = new TimeoutConcept();
+export const Report = new ReportConcept();
+export const Tag = new TagConcept();
+export const TagCount = new CountConcept();
+export const Editable = new EditableConcept();
+export const Verified = new VerifiedItemConcept();
+export const Comment = new CommentConcept();
+export const Like = new LikeConcept();
+export const BlockedEdit = new BlockedItemConcept("blockedEdits");
+export const BlockedPost = new BlockedItemConcept("blockedPosts");
+export const BlockedComment = new BlockedItemConcept("blockedComments");
