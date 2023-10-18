@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { MDBBtnClose } from "mdb-vue-ui-kit";
 import { fetchy } from "../../utils/fetchy";
 const props = defineProps(["tag", "post"]);
 const emit = defineEmits(["refreshTags"]);
@@ -17,7 +16,7 @@ const deleteTag = async () => {
 <template>
   <article class="tag">
     <p>#{{ props.tag }}</p>
-    <MDBBtnClose @click="deleteTag" />
+    <button class="btn-small pure-button" @click="deleteTag">X</button>
   </article>
 </template>
 
