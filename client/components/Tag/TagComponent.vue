@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+import { useUserStore } from "../../stores/user";
 import { fetchy } from "../../utils/fetchy";
 const props = defineProps(["tag", "post"]);
 const emit = defineEmits(["refreshTags"]);
+const { currentUsername } = storeToRefs(useUserStore());
 
 const deleteTag = async () => {
   try {
@@ -16,7 +19,9 @@ const deleteTag = async () => {
 <template>
   <article class="tag">
     <p>#{{ props.tag }}</p>
-    <button class="btn-small pure-button" @click="deleteTag">X</button>
+    <p v-if="props.post.author == currentUsername">
+      <button class="btn-small pure-button" @click="deleteTag">X</button>
+    </p>
   </article>
 </template>
 
