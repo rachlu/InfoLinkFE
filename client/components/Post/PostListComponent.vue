@@ -47,14 +47,21 @@ onBeforeMount(async () => {
     <h2 v-else>Posts by {{ searchAuthor }}:</h2>
     <SearchPostForm @getPostsByAuthor="getPosts" />
   </div>
-  <section class="posts" v-if="loaded && posts.length !== 0">
-    <article v-for="post in posts" :key="post._id">
-      <PostComponent v-if="editing !== post._id" :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
-      <EditPostForm v-else :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
-    </article>
-  </section>
-  <p v-else-if="loaded">No posts found</p>
-  <p v-else>Loading...</p>
+  <div class="container">
+    <div class="left-column">
+      <section class="posts" v-if="loaded && posts.length !== 0">
+        <article v-for="post in posts" :key="post._id">
+          <PostComponent v-if="editing !== post._id" :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
+          <EditPostForm v-else :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
+        </article>
+      </section>
+      <p v-else-if="loaded">No posts found</p>
+      <p v-else>Loading...</p>
+    </div>
+    <div class="right-column">
+      <p>Display Clicked Post</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -82,6 +89,7 @@ article {
 
 .posts {
   padding: 1em;
+  max-height: 50vh;
 }
 
 .row {
@@ -89,5 +97,23 @@ article {
   justify-content: space-between;
   margin: 0 auto;
   max-width: 60em;
+}
+
+.container {
+  display: flex;
+}
+
+.left-column {
+  flex: 1;
+  width: 25%; /* Adjust the width as needed to make it thinner */
+  height: 400px;
+  overflow: auto;
+  padding: 10px;
+}
+.right-column {
+  flex: 3; /* Adjust the flex value to make it wider */
+  height: 400px;
+  overflow: auto;
+  padding: 10px;
 }
 </style>

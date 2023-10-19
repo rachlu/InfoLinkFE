@@ -88,7 +88,7 @@ class Routes {
     if (result.state) await Report.deleteAll(user);
     await Timeout.notBlocked(user);
     const created = await Post.create(user, content, options);
-    return { msg: created.msg, post: await Responses.post(created.post) };
+    return { msg: created.msg, post: await Responses.post(created.post), postID: created.postID };
   }
 
   @Router.patch("/posts/:_id")

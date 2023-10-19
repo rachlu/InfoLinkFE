@@ -3,6 +3,15 @@ import { useToastStore } from "../stores/toast";
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 export type BodyT = string | number | boolean | null | BodyT[] | { [key: string]: BodyT };
 
+export const createTag = async (tag: string, postID: string) => {
+  try {
+    await fetchy(`/api/tags/${tag}/${postID}`, "POST");
+  } catch (e) {
+    console.log(e);
+    return;
+  }
+};
+
 /**
  * A wrapper around fetch that handles errors and alerts the messages to the user.
  *

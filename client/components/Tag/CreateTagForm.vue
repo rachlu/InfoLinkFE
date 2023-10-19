@@ -1,22 +1,23 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { fetchy } from "../../utils/fetchy";
+import TagComponent from "./TagComponent.vue";
 
 const content = ref("");
-const props = defineProps(["post"]);
-const emit = defineEmits(["refreshTags"]);
+const props = defineProps(["tags"]);
 
-const createTag = async (content: string) => {
-  console.log(`Creating new tag ${content}`);
-  try {
-    await fetchy(`/api/tags/${content}/${props.post._id}`, "POST");
-  } catch (e) {
-    console.log(e);
-    return;
-  }
+const addTag = async (content: string) => {
+  console.log(`Adding new tag ${content}`);
+  props.tags.add(content);
+  console.log(props.tags);
   console.log("Success");
-  emit("refreshTags");
   emptyForm();
+};
+
+const deleteTag = async (content: string) => {
+  console.log(`Adding new tag ${content}`);
+  props.tags.delete(content);
+  console.log(props.tags);
+  console.log("Success");
 };
 
 const emptyForm = () => {
@@ -25,9 +26,14 @@ const emptyForm = () => {
 </script>
 
 <template>
-  <form @submit.prevent="createTag(content)">
-    <label for="content">Tag:</label>
+  <form @submit.prevent="addTag(content)">
+    <label for="content">Tags: </label>
+    <section class="tags" v-if="tags.size !== 0">
+      <article v-for="tag in tags" :key="tag">
+        <TagComponent :tag="tag" :creation="true" @deleteTag="deleteTag" />
+      </article>
+    </section>
     <textarea id="content" v-model="content" placeholder="Add Tag" required> </textarea>
-    <button type="submit" class="pure-button-primary pure-button">Create Tag</button>
+    <button type="submit" class="pure-button-primary pure-button">Add Tag</button>
   </form>
 </template>

@@ -20,9 +20,11 @@ const deletePost = async () => {
 </script>
 
 <template>
-  <TagListComponent :post="post" :currentUsername="currentUsername" />
+  <TagListComponent :post="post" />
   <p class="author">{{ props.post.author }}</p>
-  <p>{{ props.post.content }}</p>
+  <div class="fade-paragraph">
+    <p>{{ props.post.content }}</p>
+  </div>
   <div class="base">
     <menu v-if="props.post.author == currentUsername">
       <li><button class="btn-small pure-button" @click="emit('editPost', props.post._id)">Edit</button></li>
@@ -69,5 +71,21 @@ menu {
 
 .base article:only-child {
   margin-left: auto;
+}
+
+.fade-paragraph {
+  width: 35vh; /* Adjust the width as needed */
+  overflow: hidden;
+  position: relative;
+}
+
+.fade-paragraph p {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  line-height: 1.5; /* Adjust line-height as needed */
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  height: 10vh;
 }
 </style>
