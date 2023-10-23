@@ -65,14 +65,18 @@ class Routes {
   }
 
   @Router.get("/posts")
-  async getPosts(author?: string) {
+  async getPosts(author?: string, tag?: string) {
     let posts;
     if (author) {
       const id = (await User.getUserByUsername(author))._id;
       posts = await Post.getByAuthor(id);
+    } else if (tag) {
+      const ids = await Tag.getPosts(tag);
+      posts = await Post.getByIDs(ids);
     } else {
       posts = await Post.getPosts({});
     }
+    // Only return posts that are not blocked
     const promises = posts.map(async (post) => {
       return !(await BlockedPost.isBlocked(post._id));
     });

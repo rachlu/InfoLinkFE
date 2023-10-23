@@ -20,12 +20,10 @@ const deletePost = async () => {
 </script>
 
 <template>
-  <div @click="emit('clickedPost', props.post)">
-    <TagListComponent :post="props.post" :cut="true" :creation="false" />
+  <article>
+    <TagListComponent :post="props.post" />
     <p class="author">{{ props.post.author }}</p>
-    <div class="fade-paragraph">
-      <p>{{ props.post.content }}</p>
-    </div>
+    <p>{{ props.post.content }}</p>
     <div class="base">
       <menu v-if="props.post.author == currentUsername">
         <li><button class="btn-small pure-button" @click="emit('editPost', props.post._id)">Edit</button></li>
@@ -36,7 +34,7 @@ const deletePost = async () => {
         <p v-else>Created on: {{ formatDate(props.post.dateCreated) }}</p>
       </article>
     </div>
-  </div>
+  </article>
 </template>
 
 <style scoped>
@@ -47,6 +45,15 @@ p {
 .author {
   font-weight: bold;
   font-size: 1.2em;
+}
+
+article {
+  background-color: var(--base-bg);
+  border-radius: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 1em;
 }
 
 menu {
@@ -73,21 +80,5 @@ menu {
 
 .base article:only-child {
   margin-left: auto;
-}
-
-.fade-paragraph {
-  width: 35vh; /* Adjust the width as needed */
-  overflow: hidden;
-  position: relative;
-}
-
-.fade-paragraph p {
-  margin: 0;
-  padding: 0;
-  position: relative;
-  line-height: 1.5; /* Adjust line-height as needed */
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-  height: 10vh;
 }
 </style>

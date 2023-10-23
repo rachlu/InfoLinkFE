@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ClickedPost from "@/components/Post/ClickedPost.vue";
 import CreatePostForm from "@/components/Post/CreatePostForm.vue";
 import EditPostForm from "@/components/Post/EditPostForm.vue";
 import PostComponent from "@/components/Post/PostComponent.vue";
@@ -8,12 +9,16 @@ import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 import SearchPostForm from "./SearchPostForm.vue";
 
-const { isLoggedIn } = storeToRefs(useUserStore());
+const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
 
 const loaded = ref(false);
 let posts = ref<Array<Record<string, string>>>([]);
 let editing = ref("");
 let searchAuthor = ref("");
+let searchTag = ref("");
+let display = ref(false);
+let displayPost = ref();
+const props = defineProps(["own"]);
 
 async function getPosts(author?: string) {
   let query: Record<string, string> = author !== undefined ? { author } : {};
@@ -23,8 +28,28 @@ async function getPosts(author?: string) {
   } catch (_) {
     return;
   }
+  searchTag.value = "";
   searchAuthor.value = author ? author : "";
   posts.value = postResults;
+  display.value = false;
+}
+
+async function getPostsByTags(tag?: string) {
+  let query: Record<string, string> = tag !== undefined ? { tag } : {};
+  let postResults;
+  try {
+    postResults = await fetchy("/api/posts", "GET", { query });
+  } catch (_) {
+    return;
+  }
+  searchTag.value = tag ? tag : "";
+  searchAuthor.value = "";
+  posts.value = postResults;
+}
+
+async function clickedPost(postClick: Record<string, string>) {
+  display.value = true;
+  displayPost.value = postClick;
 }
 
 function updateEditing(id: string) {
@@ -32,26 +57,31 @@ function updateEditing(id: string) {
 }
 
 onBeforeMount(async () => {
-  await getPosts();
+  if (props.own) {
+    await getPosts(currentUsername.value);
+  } else {
+    await getPosts();
+  }
   loaded.value = true;
 });
 </script>
 
 <template>
-  <section v-if="isLoggedIn">
+  <section v-if="isLoggedIn && !props.own">
     <h2>Create a post:</h2>
     <CreatePostForm @refreshPosts="getPosts" />
   </section>
   <div class="row">
-    <h2 v-if="!searchAuthor">Posts:</h2>
-    <h2 v-else>Posts by {{ searchAuthor }}:</h2>
-    <SearchPostForm @getPostsByAuthor="getPosts" />
+    <h2 v-if="searchAuthor">Posts by {{ searchAuthor }}:</h2>
+    <h2 v-else-if="searchTag">Posts with Tag {{ searchTag }}:</h2>
+    <h2 v-else>Posts:</h2>
+    <SearchPostForm :own="props.own" @getPostsByAuthor="getPosts" @getPostsByTags="getPostsByTags" />
   </div>
   <div class="container">
     <div class="left-column">
       <section class="posts" v-if="loaded && posts.length !== 0">
         <article v-for="post in posts" :key="post._id">
-          <PostComponent v-if="editing !== post._id" :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
+          <PostComponent v-if="editing !== post._id" :post="post" @refreshPosts="getPosts" @editPost="updateEditing" @clickedPost="clickedPost" />
           <EditPostForm v-else :post="post" @refreshPosts="getPosts" @editPost="updateEditing" />
         </article>
       </section>
@@ -59,7 +89,10 @@ onBeforeMount(async () => {
       <p v-else>Loading...</p>
     </div>
     <div class="right-column">
-      <p>Display Clicked Post</p>
+      <section v-if="display">
+        <ClickedPost :post="displayPost" @refreshPosts="getPosts" @editPost="updateEditing" />
+      </section>
+      <p v-else>No Post Clicked</p>
     </div>
   </div>
 </template>

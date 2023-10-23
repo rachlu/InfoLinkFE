@@ -28,8 +28,8 @@ const emptyForm = () => {
 <template>
   <form @submit.prevent="addTag(content)">
     <label for="content">Tags: </label>
-    <section class="tags" v-if="tags.size !== 0">
-      <article v-for="tag in tags" :key="tag">
+    <section v-if="tags.size !== 0">
+      <article class="tag" v-for="tag in tags" :key="tag">
         <TagComponent :tag="tag" :creation="true" @deleteTag="deleteTag" />
       </article>
     </section>
@@ -37,3 +37,10 @@ const emptyForm = () => {
     <button type="submit" class="pure-button-primary pure-button">Add Tag</button>
   </form>
 </template>
+
+<style scoped>
+.tag {
+  display: inline-block;
+  margin-right: 0.5em;
+}
+</style>

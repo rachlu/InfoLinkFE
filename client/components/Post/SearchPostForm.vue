@@ -2,14 +2,24 @@
 import { ref } from "vue";
 
 const author = ref("");
-const emit = defineEmits(["getPostsByAuthor"]);
+const tag = ref("");
+const props = defineProps(["own"]);
+const emit = defineEmits(["getPostsByAuthor", "getPostsByTags"]);
 </script>
 
 <template>
-  <form @submit.prevent="emit('getPostsByAuthor', author)" class="pure-form">
+  <form v-if="!props.own" @submit.prevent="emit('getPostsByAuthor', author)" class="pure-form">
     <fieldset>
       <legend>Search by Author</legend>
       <input id="author" type="text" v-model="author" placeholder="Username" />
+      <button type="submit" class="pure-button pure-button-primary">Search</button>
+    </fieldset>
+  </form>
+
+  <form @submit.prevent="emit('getPostsByTags', tag)" class="pure-form">
+    <fieldset>
+      <legend>Search by Tag</legend>
+      <input id="tag" type="text" v-model="tag" placeholder="Tag" />
       <button type="submit" class="pure-button pure-button-primary">Search</button>
     </fieldset>
   </form>

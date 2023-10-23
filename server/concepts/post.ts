@@ -32,6 +32,10 @@ export default class PostConcept {
     return await this.getPosts({ author });
   }
 
+  async getByIDs(ids: ObjectId[]) {
+    return await this.posts.readMany({ _id: { $in: ids } });
+  }
+
   async getAuthor(_id: ObjectId) {
     const post = await this.posts.readOne({ _id });
     if (post === null) {

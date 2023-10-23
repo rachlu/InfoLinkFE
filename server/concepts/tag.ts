@@ -16,6 +16,12 @@ export default class TagConcept {
     return tag;
   }
 
+  private postIDs(t: TagDoc) {
+    // eslint-disable-next-line
+    const { post, ...rest } = t; // Only get tag name
+    return post;
+  }
+
   async addTag(tag: string, post: ObjectId) {
     if (tag === "") {
       throw new NotAllowedError("Tag must be nonempty");
@@ -34,6 +40,10 @@ export default class TagConcept {
 
   async getTagsPost(post: ObjectId) {
     return (await this.tags.readMany({ post })).map(this.sanitizeTags);
+  }
+
+  async getPosts(tag: string) {
+    return (await this.tags.readMany({ tag })).map(this.postIDs);
   }
 
   private async notExist(tag: string, post: ObjectId) {
