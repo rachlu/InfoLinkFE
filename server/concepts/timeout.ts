@@ -26,11 +26,24 @@ export default class TimeoutConcept {
     return { msg: "Block condition not satisfied" };
   }
 
-  async getUsersUnblockedAt() {
+  async freeUsers() {
     // Get all users that will be unblocked at this time
     const filter = { $lt: new Date() };
-    const users = await this.timeouts.readMany({ filter });
+    const users = await this.timeouts.deleteMany({ expire: filter });
     return users;
+  }
+
+  async getAllBlockedUsers() {
+    const users = (await this.timeouts.readMany({})).map((value) => value.user);
+    return users;
+  }
+
+  async getExpireDate(userID: ObjectId) {
+    const user = await this.timeouts.readOne({ user: userID });
+    if (user) {
+      return user.expire.toLocaleString([], { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
+    }
+    return "No Expire Date";
   }
 
   async isUserExpired(userID: ObjectId) {

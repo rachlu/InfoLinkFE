@@ -77,11 +77,11 @@ class Routes {
       posts = await Post.getPosts({});
     }
     // Only return posts that are not blocked
-    const promises = posts.map(async (post) => {
-      return !(await BlockedPost.isBlocked(post._id));
-    });
-    const data_with = await Promise.all(promises);
-    posts = posts.filter((value, index) => data_with[index]);
+    // const promises = posts.map(async (post) => {
+    //   return !(await BlockedPost.isBlocked(post._id));
+    // });
+    // const data_with = await Promise.all(promises);
+    // posts = posts.filter((value, index) => data_with[index]);
     return Responses.posts(posts);
   }
 
@@ -471,16 +471,18 @@ class Routes {
   }
 
   @Router.get("/comments/:_id")
-  async getComments(session: WebSessionDoc, _id: ObjectId) {
-    const id = new ObjectId(_id);
-    await Post.isPost(id);
-    let comments = await Comment.getComments(id);
-    const promises = comments.map(async (comment) => {
-      return !(await BlockedComment.isBlocked(comment._id));
-    });
-    const data_with = await Promise.all(promises);
-    comments = comments.filter((value, index) => data_with[index]);
-    return comments;
+  async getComments(session: WebSessionDoc, _id: ObjectId, author?: string) {
+    let comments;
+    if (author) {
+      const id = (await User.getUserByUsername(author))._id;
+      comments = await Comment.getByAuthor(id);
+      return comments;
+    } else {
+      const id = new ObjectId(_id);
+      await Post.isPost(id);
+      comments = await Comment.getByPost(id);
+    }
+    return Responses.comments(comments);
   }
 
   @Router.post("/like/post/:_id")
@@ -578,6 +580,19 @@ class Routes {
   async getBlockedComments(tag: string) {
     const posts = await BlockedComment.getBlockedInCategory(tag);
     return posts;
+  }
+
+  @Router.get("/timeout")
+  async getAllBlockedUsers() {
+    await Timeout.freeUsers();
+    const users = await Timeout.getAllBlockedUsers();
+    return users;
+  }
+
+  @Router.get("/timeout/:_id")
+  async getExpireDate(_id: ObjectId) {
+    const id = new ObjectId(_id);
+    return await Timeout.getExpireDate(id);
   }
 }
 

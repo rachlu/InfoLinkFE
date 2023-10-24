@@ -20,7 +20,7 @@ export default class CommentConcept {
   async uniqueComment(postID: ObjectId, author: ObjectId) {
     const result = await this.comments.readOne({ postID, author });
     if (result) {
-      throw new NotAllowedError("Comment exists");
+      throw new NotAllowedError("Only One Comment Per User Per Post!");
     }
   }
 
@@ -68,8 +68,12 @@ export default class CommentConcept {
     return comment.postID;
   }
 
-  async getComments(_id: ObjectId) {
+  async getByPost(_id: ObjectId) {
     return await this.comments.readMany({ postID: _id });
+  }
+
+  async getByAuthor(_id: ObjectId) {
+    return await this.comments.readMany({ author: _id });
   }
 
   async noComments(postID: ObjectId) {

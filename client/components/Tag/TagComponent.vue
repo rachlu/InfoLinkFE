@@ -20,10 +20,10 @@ const deleteTag = async () => {
 
 <style scoped>
 .tag {
-  background-color: lightblue; /* Set the background color to light blue */
-  border-radius: 1em; /* Add rounded edges with a border radius value */
-  padding: 0.4em; /* Add padding to create space between text and the border */
-  display: inline-block; /* Optional, makes the div only as wide as its content */
+  background-color: lightblue;
+  border-radius: 1em;
+  padding: 0.4em;
+  display: inline-block;
 }
 
 p {

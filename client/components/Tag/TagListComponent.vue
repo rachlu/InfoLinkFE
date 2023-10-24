@@ -49,12 +49,11 @@ watch(
 .tag {
   display: inline-block;
   margin-right: 0.5em;
+  max-width: 8em;
 }
-
 .tag-container {
-  white-space: nowrap; /* Prevent text from wrapping to the next line */
-  overflow: hidden; /* Hide overflowing content */
-  text-overflow: ellipsis; /* Show ellipsis (...) for overflowing text */
-  max-width: 100vh; /* Adjust the maximum width as needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
