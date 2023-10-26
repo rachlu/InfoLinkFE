@@ -12,7 +12,7 @@ const { currentUsername, isLoggedIn } = storeToRefs(useUserStore());
 const loaded = ref(false);
 let comments = ref<Array<Record<string, string>>>([]);
 let editing = ref("");
-const props = defineProps(["own", "post"]);
+const props = defineProps(["own", "post", "timeout"]);
 
 async function getComments(author?: string) {
   let query: Record<string, string> = author !== undefined ? { author } : {};
@@ -43,13 +43,13 @@ watch(
 </script>
 
 <template>
-  <section v-if="isLoggedIn && !props.own">
+  <section v-if="isLoggedIn && !props.own && !props.timeout">
     <CreateCommentForm :post="props.post" @refreshComments="getComments" />
   </section>
   <div class="container">
     <section class="comments" v-if="loaded && comments.length !== 0">
       <article v-for="comment in comments" :key="comment._id">
-        <CommentComponent v-if="editing !== comment._id" :comment="comment" @refreshComments="getComments" @editComment="updateEditing" />
+        <CommentComponent v-if="editing !== comment._id" :comment="comment" :timeout="props.timeout" @refreshComments="getComments" @editComment="updateEditing" />
         <EditCommentForm v-else :comment="comment" @refreshComments="getComments" @editComment="updateEditing" />
       </article>
     </section>

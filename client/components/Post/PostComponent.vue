@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import TimeoutHelp from "@/components/Timeout/TimeoutHelp.vue";
 import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/formatDate";
 import { storeToRefs } from "pinia";
+import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
+import LikeComponent from "../Like/LikeComponent.vue";
 import TagListComponent from "../Tag/TagListComponent.vue";
-
 const props = defineProps(["post", "click", "cut"]);
 const emit = defineEmits(["editPost", "refreshPosts"]);
 const { currentUsername } = storeToRefs(useUserStore());
+
+const totalLikes = ref(0);
 
 const deletePost = async () => {
   try {
@@ -17,14 +21,25 @@ const deletePost = async () => {
   }
   emit("refreshPosts");
 };
+
+const updateLikes = async (total: number) => {
+  totalLikes.value = total;
+};
 </script>
 
 <template>
   <div>
+    <menu>
+      <TimeoutHelp />
+    </menu>
     <TagListComponent :post="props.post" :cut="props.cut" :creation="false" />
     <p class="author">{{ props.post.author }}</p>
     <div :class="props.click && 'fade-paragraph'">
       <p>{{ props.post.content }}</p>
+    </div>
+    <div class="like" v-if="!props.click">
+      <p>{{ totalLikes }}</p>
+      <LikeComponent :type="'posts'" :id="props.post._id" @updateLikes="updateLikes" />
     </div>
     <div class="base">
       <menu v-if="props.post.author == currentUsername">
@@ -63,6 +78,12 @@ menu {
   justify-content: flex-end;
   font-size: 0.9em;
   font-style: italic;
+}
+
+.like {
+  display: flex;
+  gap: 0.5em;
+  justify-content: flex-end;
 }
 
 .base {

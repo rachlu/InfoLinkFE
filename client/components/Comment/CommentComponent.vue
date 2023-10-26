@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
-const props = defineProps(["comment"]);
+const props = defineProps(["comment", "timeout"]);
 const emit = defineEmits(["editComment", "refreshComments"]);
 const { currentUsername } = storeToRefs(useUserStore());
 let clicked = ref(false);
@@ -32,7 +32,7 @@ function toggleComment() {
       <p>{{ props.comment.content }}</p>
     </div>
     <div class="base">
-      <menu v-if="props.comment.author == currentUsername">
+      <menu v-if="props.comment.author == currentUsername && !props.timeout">
         <li><button class="btn-small pure-button" @click="emit('editComment', props.comment._id)">Edit</button></li>
         <li><button class="button-error btn-small pure-button" @click="deleteComment">Delete</button></li>
       </menu>

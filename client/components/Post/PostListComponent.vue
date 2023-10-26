@@ -3,6 +3,7 @@ import CommentListComponent from "@/components/Comment/CommentListComponent.vue"
 import CreatePostForm from "@/components/Post/CreatePostForm.vue";
 import EditPostForm from "@/components/Post/EditPostForm.vue";
 import PostComponent from "@/components/Post/PostComponent.vue";
+import TimeoutComponent from "@/components/Timeout/TimeoutComponent.vue";
 import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
@@ -21,7 +22,6 @@ let searchAuthor = ref("");
 let searchTag = ref("");
 let display = ref(false);
 let displayPost = ref();
-let expireDate = ref();
 const props = defineProps(["own"]);
 
 async function getPosts(author?: string) {
@@ -70,14 +70,14 @@ onBeforeMount(async () => {
     await getPosts();
   }
   loaded.value = true;
-  await updateTimeoutUsers();
-  expireDate.value = await getExpireDate(currentUserID.value);
 });
 </script>
 
 <template>
   <section v-if="isLoggedIn && !props.own">
-    <div class="blocked" v-if="timeoutUsers.includes(currentUserID)">Blocked Until {{ expireDate }}</div>
+    <div v-if="timeoutUsers.includes(currentUserID)">
+      <TimeoutComponent />
+    </div>
     <div v-else>
       <h2>Create a post:</h2>
       <CreatePostForm @refreshPosts="getPosts" />
@@ -103,7 +103,7 @@ onBeforeMount(async () => {
       <section v-if="display">
         <PostComponent :click="false" v-if="editing !== displayPost._id" :cut="false" :post="displayPost" @refreshPosts="getPosts" @editPost="updateEditing" />
         <EditPostForm :post="displayPost" v-else @refreshPosts="getPosts" @editPost="updateEditing" />
-        <CommentListComponent :own="props.own" :post="displayPost" />
+        <CommentListComponent :own="props.own" :post="displayPost" :timeout="timeoutUsers.includes(currentUserID)" />
       </section>
       <p v-else>No Post Clicked</p>
     </div>
@@ -165,13 +165,5 @@ article:hover {
   height: 60em;
   overflow: auto;
   padding: 0.1em;
-}
-
-.blocked {
-  background-color: lightcoral;
-  color: white;
-  font-size: 2em;
-  padding: 0.1em;
-  text-align: center;
 }
 </style>

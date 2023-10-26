@@ -98,6 +98,7 @@ class Routes {
   @Router.patch("/posts/:_id")
   async updatePost(session: WebSessionDoc, _id: ObjectId, update: Partial<PostDoc>) {
     const user = WebSession.getUser(session);
+    console.log("update");
     const id = new ObjectId(_id);
     await Post.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
@@ -110,6 +111,7 @@ class Routes {
   async deletePost(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("delete");
     await Post.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -164,7 +166,7 @@ class Routes {
     return await Friend.rejectRequest(fromId, user);
   }
 
-  @Router.post("/report/post/:_id")
+  @Router.post("/posts/:_id/report")
   async reportPost(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -176,7 +178,7 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/report/post/:_id")
+  @Router.delete("/posts/:_id/report")
   async deleteReportPost(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -188,7 +190,7 @@ class Routes {
     return msg;
   }
 
-  @Router.post("/report/comment/:_id")
+  @Router.post("/comments/:_id/report")
   async reportComment(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -201,7 +203,7 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/report/comment/:_id")
+  @Router.delete("/comment/:_id/report")
   async deleteReportComment(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -214,7 +216,7 @@ class Routes {
     return msg;
   }
 
-  @Router.post("/report/edit/:_id")
+  @Router.post("/edits/:_id/report")
   async reportEdit(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -227,7 +229,7 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/report/edit/:_id")
+  @Router.delete("/edits/:_id/report")
   async deleteReportEdit(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -240,7 +242,7 @@ class Routes {
     return msg;
   }
 
-  @Router.get("/count/report")
+  @Router.get("/report")
   async getReportTagNum(session: WebSessionDoc) {
     // Gets the number of reports an user has
     const user = WebSession.getUser(session);
@@ -249,9 +251,10 @@ class Routes {
     return { msg: `Total Reports: ${totalReport}` };
   }
 
-  @Router.post("/edits")
-  async createEdit(session: WebSessionDoc, postID: ObjectId, content: string) {
+  @Router.post("/edits/:_id")
+  async createEdit(session: WebSessionDoc, _id: ObjectId, content: string) {
     // Create an edit to a community tagged Post with given content
+    const postID = new ObjectId(_id);
     const user = WebSession.getUser(session);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -266,6 +269,7 @@ class Routes {
   async updateEdit(session: WebSessionDoc, _id: ObjectId, update: Partial<PostDoc>) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("edit update");
     await Editable.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -277,6 +281,7 @@ class Routes {
   async deleteEdit(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("edit delete");
     await Editable.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -302,7 +307,7 @@ class Routes {
     return edits;
   }
 
-  @Router.put("/edit/approve/:_id")
+  @Router.put("/edits/:_id/approve")
   async approveEdit(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user approve a reported edit
     const user = WebSession.getUser(session);
@@ -315,7 +320,7 @@ class Routes {
     return await BlockedEdit.delete(id);
   }
 
-  @Router.delete("/edit/reject/:_id")
+  @Router.delete("/edits/:_id/reject")
   async rejectEdit(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user reject and delete a reported edit
     const user = WebSession.getUser(session);
@@ -329,7 +334,7 @@ class Routes {
     return await Editable.delete(editID);
   }
 
-  @Router.put("/comment/approve/:_id")
+  @Router.put("/comments/:_id/approve")
   async approveComment(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user approve a reported edit
     const user = WebSession.getUser(session);
@@ -342,7 +347,7 @@ class Routes {
     return await BlockedComment.delete(id);
   }
 
-  @Router.delete("/comment/reject/:_id")
+  @Router.delete("/comments/:_id/reject")
   async rejectComment(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user reject and delete a reported edit
     const user = WebSession.getUser(session);
@@ -356,7 +361,7 @@ class Routes {
     return await Comment.delete(commentID);
   }
 
-  @Router.delete("/post/approve/:_id")
+  @Router.delete("/posts/:_id/approve")
   async approvePost(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user approve a reported edit
     const user = WebSession.getUser(session);
@@ -368,7 +373,7 @@ class Routes {
     return await BlockedPost.delete(id);
   }
 
-  @Router.delete("/post/reject/:_id")
+  @Router.delete("/post/reject/:_id/reject")
   async rejectPost(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user reject and delete a reported edit
     const user = WebSession.getUser(session);
@@ -387,11 +392,12 @@ class Routes {
     return await Verified.getVerifiedTags(user);
   }
 
-  @Router.post("/tags/:tag/:_id")
+  @Router.post("/posts/:_id/tags/:tag")
   async addTag(session: WebSessionDoc, tag: string, _id: ObjectId) {
     // Let an user add tag to given post _id if user is author of post
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("add tag");
     await Post.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -407,11 +413,12 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/tags/:tag/:_id")
+  @Router.delete("/posts/:_id/tags/:tag")
   async deleteTag(session: WebSessionDoc, tag: string, _id: ObjectId) {
     // Let an user delete a tag to a given post _id if user is author of post
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("delete tag");
     await Post.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -445,6 +452,7 @@ class Routes {
   async updateComment(session: WebSessionDoc, _id: ObjectId, update: Partial<PostDoc>) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
+    console.log("comment update");
     await Comment.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
@@ -460,6 +468,7 @@ class Routes {
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
     await Timeout.notBlocked(user);
+    console.log("comment delete");
     await Comment.isAuthor(user, id);
     const post = await Comment.getPost(id);
     const msg = await Comment.delete(id);
@@ -485,7 +494,7 @@ class Routes {
     return Responses.comments(comments);
   }
 
-  @Router.post("/like/post/:_id")
+  @Router.post("/posts/:_id/like")
   async likePost(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -495,17 +504,17 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/unlike/post/:_id")
+  @Router.delete("/posts/:_id/like")
   async unlikePost(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
     const author = await Post.getAuthor(id);
-    const msg = await Like.unlike(user, _id);
+    const msg = await Like.unlike(user, id);
     await Helper.unlike(user, id, author);
     return msg;
   }
 
-  @Router.post("/like/comment/:_id")
+  @Router.post("/comments/:_id/like")
   async likeComment(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -516,7 +525,7 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/unlike/comment/:_id")
+  @Router.delete("/comments/:_id/like")
   async unlikeComment(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
@@ -527,7 +536,7 @@ class Routes {
     return msg;
   }
 
-  @Router.post("/like/edit/:_id")
+  @Router.post("/edits/:_id/like")
   async likeEdit(session: WebSessionDoc, _id: ObjectId) {
     // Let user increment count for tags associated with objID (post/comment)
     const user = WebSession.getUser(session);
@@ -539,7 +548,7 @@ class Routes {
     return msg;
   }
 
-  @Router.delete("/unlike/edit/:_id")
+  @Router.delete("/edits/:_id/like")
   async unlikeEdit(session: WebSessionDoc, _id: ObjectId) {
     // Let user decrement count for a specific object with given ID
     const user = WebSession.getUser(session);
@@ -557,26 +566,26 @@ class Routes {
     return await Like.getTotalLikes(id);
   }
 
-  @Router.get("/count/")
+  @Router.get("/count")
   async getCount(session: WebSessionDoc) {
-    // Get specific count an user has for a specific tag
+    // Get specific count an user has for all tags
     const user = WebSession.getUser(session);
     return await TagCount.getAllCounts(user);
   }
 
-  @Router.get("/blocked/posts/:tag")
+  @Router.get("/blocks/post/:tag")
   async getBlockedPosts(tag: string) {
     const posts = await BlockedPost.getBlockedInCategory(tag);
     return posts;
   }
 
-  @Router.get("/blocked/edits/:tag")
+  @Router.get("/blocks/edits/:tag")
   async getBlockedEdits(tag: string) {
     const posts = await BlockedEdit.getBlockedInCategory(tag);
     return posts;
   }
 
-  @Router.get("/blocked/comments/:tag")
+  @Router.get("/blocks/comments/:tag")
   async getBlockedComments(tag: string) {
     const posts = await BlockedComment.getBlockedInCategory(tag);
     return posts;

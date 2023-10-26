@@ -27,7 +27,6 @@ export default class TimeoutConcept {
   }
 
   async freeUsers() {
-    // Get all users that will be unblocked at this time
     const filter = { $lt: new Date() };
     const users = await this.timeouts.deleteMany({ expire: filter });
     return users;
