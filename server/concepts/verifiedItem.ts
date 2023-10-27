@@ -9,7 +9,7 @@ export interface VerifiedItemDoc extends BaseDoc {
 
 export default class VerifiedItemConcept {
   public readonly verifiedItems = new DocCollection<VerifiedItemDoc>("verifiedItems");
-  private readonly verifyCondition = 1; // Number of Likes needed to be verified
+  private readonly verifyCondition = 2; // Number of Likes needed to be verified
 
   private getTag(i: VerifiedItemDoc) {
     // eslint-disable-next-line
@@ -39,11 +39,11 @@ export default class VerifiedItemConcept {
       const count = nums.get(tag);
       if (count && count >= this.verifyCondition) {
         if (!verified) {
-          return await this.verify(user, tag);
+          await this.verify(user, tag);
         }
       } else {
         if (verified) {
-          return await this.unverify(user, tag);
+          await this.unverify(user, tag);
         }
       }
     }

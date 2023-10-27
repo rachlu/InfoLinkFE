@@ -32,12 +32,9 @@ const toggleLike = async () => {
 };
 
 const update = async () => {
-  total.value = await fetchy(`/api/like/${props.id}`, "GET");
-  if (total.value) {
-    liked.value = true;
-  } else {
-    liked.value = false;
-  }
+  const result = await fetchy(`/api/like/${props.id}`, "GET");
+  total.value = result.total;
+  liked.value = result.liked;
   emit("updateLikes", total.value);
 };
 

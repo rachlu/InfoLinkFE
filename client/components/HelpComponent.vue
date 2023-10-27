@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+const props = defineProps(["msg"]);
 const showToolTip = ref(false);
 
-const print = async () => {
+const toggle = async () => {
   showToolTip.value = !showToolTip.value;
-  console.log(showToolTip.value);
 };
 </script>
 
 <template>
   <div class="tooltip-container">
-    <span @mouseenter="print" @mouseleave="print" class="question-mark">?</span>
-    <div v-if="showToolTip" class="tooltip">This is a community tagged post where all users can collaborate to create a common post!</div>
+    <span @mouseenter="toggle" @mouseleave="toggle" class="question-mark">?</span>
+    <div v-if="showToolTip" class="tooltip">{{ props.msg }}</div>
   </div>
 </template>
 
@@ -38,12 +38,12 @@ const print = async () => {
 .tooltip {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   background-color: #333;
   color: #fff;
   padding: 0.1em;
   border-radius: 0.4em;
-  margin-left: 1em;
+  margin-right: 1em;
   width: 10em;
   display: none;
 }

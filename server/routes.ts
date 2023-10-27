@@ -109,14 +109,7 @@ class Routes {
 
   @Router.delete("/posts/:_id")
   async deletePost(session: WebSessionDoc, _id: ObjectId) {
-    const user = WebSession.getUser(session);
-    const id = new ObjectId(_id);
-    console.log("delete");
-    await Post.isAuthor(user, id);
-    const result = await Timeout.freeUser(user);
-    if (result.state) await Report.deleteAll(user);
-    await Timeout.notBlocked(user);
-    return Post.delete(id);
+    return await Helper.deletePost(session, _id, true);
   }
 
   @Router.get("/friends")
@@ -281,42 +274,50 @@ class Routes {
   async deleteEdit(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    console.log("edit delete");
     await Editable.isAuthor(user, id);
     const result = await Timeout.freeUser(user);
     if (result.state) await Report.deleteAll(user);
     await Timeout.notBlocked(user);
     const post = await Editable.getObjID(id);
-    const msg = Editable.delete(id);
+    const msg = await Editable.delete(id);
+    let noneLeft = false;
+    if ((await Editable.getEdits(post)).length == 0) {
+      await Helper.deletePost(session, post, false);
+      noneLeft = true;
+    }
     await Report.deleteObj(id);
     const tags = await Tag.getTagsPost(post);
-    const count = Like.getTotalLikes(id);
+    const count = (await Like.getLikeStatus(user, id)).total;
     await TagCount.update(user, tags, -count);
-    return msg;
+    return { msg: msg, noneLeft: noneLeft };
   }
 
   @Router.get("/edits/:_id")
   async getEdits(_id: ObjectId) {
     const id = new ObjectId(_id);
-    let edits = await Editable.getEdits(id);
-    const promises = edits.map(async (edit) => {
-      return !(await BlockedEdit.isBlocked(edit._id));
-    });
-    const data_with = await Promise.all(promises);
-    edits = edits.filter((value, index) => data_with[index]);
+    const edits = await Editable.getEdits(id);
+    // const promises = edits.map(async (edit) => {
+    //   return !(await BlockedEdit.isBlocked(edit._id));
+    // });
+    // const data_with = await Promise.all(promises);
+    // edits = edits.filter((value, index) => data_with[index]);
     return edits;
   }
 
-  @Router.put("/edits/:_id/approve")
+  @Router.get("/edits")
+  async getAllEditableObjIDs() {
+    return await Editable.getAllObjIDs();
+  }
+
+  @Router.delete("/edits/:_id/approve")
   async approveEdit(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user approve a reported edit
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    const editID = await BlockedEdit.getObjID(id);
-    const post = await Editable.getObjID(editID);
+    const post = await Editable.getObjID(id);
     const tags = await Tag.getTagsPost(post);
     await Editable.notAuthor(user, id);
-    await Helper.approve(user, tags, editID);
+    await Helper.approve(user, tags, id);
     return await BlockedEdit.delete(id);
   }
 
@@ -325,13 +326,12 @@ class Routes {
     // Let a verified user reject and delete a reported edit
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    const editID = await BlockedEdit.getObjID(id);
-    const post = await Editable.getObjID(editID);
+    const post = await Editable.getObjID(id);
     const tags = await Tag.getTagsPost(post);
     await Editable.notAuthor(user, id);
-    await Helper.reject(user, tags, editID);
+    await Helper.reject(user, tags, id);
     await BlockedEdit.delete(id);
-    return await Editable.delete(editID);
+    return await Editable.delete(id);
   }
 
   @Router.put("/comments/:_id/approve")
@@ -366,27 +366,25 @@ class Routes {
     // Let a verified user approve a reported edit
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    const postID = await BlockedPost.getObjID(id);
-    const tags = await Tag.getTagsPost(postID);
-    await Post.notAuthor(user, postID);
-    await Helper.approve(user, tags, postID);
+    const tags = await Tag.getTagsPost(id);
+    await Post.notAuthor(user, id);
+    await Helper.approve(user, tags, id);
     return await BlockedPost.delete(id);
   }
 
-  @Router.delete("/post/reject/:_id/reject")
+  @Router.delete("/posts/:_id/reject")
   async rejectPost(session: WebSessionDoc, _id: ObjectId) {
     // Let a verified user reject and delete a reported edit
     const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    const postID = await BlockedPost.getObjID(id);
-    const tags = await Tag.getTagsPost(postID);
-    await Post.notAuthor(user, postID);
-    await Helper.reject(user, tags, postID);
+    const tags = await Tag.getTagsPost(id);
+    await Post.notAuthor(user, id);
+    await Helper.reject(user, tags, id);
     await BlockedPost.delete(id);
-    return await Post.delete(postID);
+    return await Post.delete(id);
   }
 
-  @Router.get("/verify")
+  @Router.get("/tags/verify")
   async getVerifiedTags(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
     return await Verified.getVerifiedTags(user);
@@ -406,7 +404,7 @@ class Routes {
     const tags = await Tag.getTagsPost(id);
     if (await Editable.editable(tags)) await Editable.noEdits(id);
     const msg = await Tag.addTag(tag, id);
-    const count = await Like.getTotalLikes(id);
+    const count = (await Like.getLikeStatus(user, id)).total;
     await TagCount.update(user, [tag], count);
     const tagCounts = await TagCount.getCounts(user, [tag]);
     await Verified.updateVerify(user, [tag], tagCounts);
@@ -424,7 +422,7 @@ class Routes {
     if (result.state) await Report.deleteAll(user);
     await Timeout.notBlocked(user);
     const msg = await Tag.deleteTag(tag, id);
-    const count = await Like.getTotalLikes(id);
+    const count = (await Like.getLikeStatus(user, id)).total;
     await TagCount.update(user, [tag], -count);
     const tagCounts = await TagCount.getCounts(user, [tag]);
     await Verified.updateVerify(user, [tag], tagCounts);
@@ -474,7 +472,7 @@ class Routes {
     const msg = await Comment.delete(id);
     await Report.deleteObj(id);
     const tags = await Tag.getTagsPost(post);
-    const count = Like.getTotalLikes(id);
+    const count = (await Like.getLikeStatus(user, id)).total;
     await TagCount.update(user, tags, -count);
     return msg;
   }
@@ -536,34 +534,35 @@ class Routes {
     return msg;
   }
 
-  @Router.post("/edits/:_id/like")
-  async likeEdit(session: WebSessionDoc, _id: ObjectId) {
-    // Let user increment count for tags associated with objID (post/comment)
-    const user = WebSession.getUser(session);
-    const id = new ObjectId(_id);
-    const author = await Editable.getAuthor(id);
-    const postID = await Editable.getObjID(id);
-    const msg = await Like.like(user, id);
-    await Helper.like(user, postID, author);
-    return msg;
-  }
+  // @Router.post("/edits/:_id/like")
+  // async likeEdit(session: WebSessionDoc, _id: ObjectId) {
+  //   // Let user increment count for tags associated with objID (post/comment)
+  //   const user = WebSession.getUser(session);
+  //   const id = new ObjectId(_id);
+  //   const author = await Editable.getAuthor(id);
+  //   const postID = await Editable.getObjID(id);
+  //   const msg = await Like.like(user, id);
+  //   await Helper.like(user, postID, author);
+  //   return msg;
+  // }
 
-  @Router.delete("/edits/:_id/like")
-  async unlikeEdit(session: WebSessionDoc, _id: ObjectId) {
-    // Let user decrement count for a specific object with given ID
-    const user = WebSession.getUser(session);
-    const id = new ObjectId(_id);
-    const author = await Editable.getAuthor(id);
-    const postID = await Editable.getObjID(id);
-    const msg = await Like.unlike(user, id);
-    await Helper.unlike(user, postID, author);
-    return msg;
-  }
+  // @Router.delete("/edits/:_id/like")
+  // async unlikeEdit(session: WebSessionDoc, _id: ObjectId) {
+  //   // Let user decrement count for a specific object with given ID
+  //   const user = WebSession.getUser(session);
+  //   const id = new ObjectId(_id);
+  //   const author = await Editable.getAuthor(id);
+  //   const postID = await Editable.getObjID(id);
+  //   const msg = await Like.unlike(user, id);
+  //   await Helper.unlike(user, postID, author);
+  //   return msg;
+  // }
 
   @Router.get("/like/:_id")
-  async getTotalLikes(_id: ObjectId) {
+  async getLikeNumStatus(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
     const id = new ObjectId(_id);
-    return await Like.getTotalLikes(id);
+    return await Like.getLikeStatus(user, id);
   }
 
   @Router.get("/count")
@@ -573,7 +572,17 @@ class Routes {
     return await TagCount.getAllCounts(user);
   }
 
-  @Router.get("/blocks/post/:tag")
+  @Router.get("/posts/block")
+  async getAllBlockedPosts() {
+    return await BlockedPost.getAllBlocked();
+  }
+
+  @Router.get("/edits/block")
+  async getAllBlockedEdits() {
+    return await BlockedEdit.getAllBlocked();
+  }
+
+  @Router.get("/blocks/posts/:tag")
   async getBlockedPosts(tag: string) {
     const posts = await BlockedPost.getBlockedInCategory(tag);
     return posts;
@@ -659,6 +668,18 @@ class Helper {
     await TagCount.update(author, tags, -1);
     const tagCounts = await TagCount.getCounts(author, tags);
     await Verified.updateVerify(author, tags, tagCounts);
+  }
+
+  static async deletePost(session: WebSessionDoc, _id: ObjectId, author: boolean) {
+    const user = WebSession.getUser(session);
+    const id = new ObjectId(_id);
+    if (author) {
+      await Post.isAuthor(user, id);
+    }
+    const result = await Timeout.freeUser(user);
+    if (result.state) await Report.deleteAll(user);
+    await Timeout.notBlocked(user);
+    return Post.delete(id);
   }
 }
 export default getExpressRouter(new Routes());

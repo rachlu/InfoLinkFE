@@ -22,8 +22,23 @@ export default class LikeConcept {
     return { msg: "Unliked successfully!" };
   }
 
-  async getTotalLikes(objID: ObjectId) {
-    return await this.counts.count({ objID });
+  /**
+   * @param liker User that liked the object
+   * @param objID Object ID
+   * @returns total number of likes the object has and true/false
+   *          based on whether liker has liked the obj
+   */
+  async getLikeStatus(liker: ObjectId, objID: ObjectId) {
+    const total = await this.counts.count({ objID });
+    const result = await this.counts.readOne({ liker, objID });
+    let liked;
+    if (result) {
+      liked = true;
+    } else {
+      liked = false;
+    }
+
+    return { total: total, liked: liked };
   }
 
   async notLiked(liker: ObjectId, objID: ObjectId) {

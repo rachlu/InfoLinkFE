@@ -6,6 +6,7 @@ import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 import ProfileView from "../views/ProfileView.vue";
+import ReportView from "../views/ReportView.vue";
 import SettingView from "../views/SettingView.vue";
 
 const router = createRouter({
@@ -26,6 +27,11 @@ const router = createRouter({
       path: "/profile",
       name: "Profile",
       component: ProfileView,
+    },
+    {
+      path: "/reports",
+      name: "Reports",
+      component: ReportView,
     },
     {
       path: "/login",

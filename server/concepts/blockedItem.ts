@@ -48,12 +48,17 @@ export default class BlockedItemConcept {
 
   async getBlockedInCategory(category: string) {
     const items = await this.blocks.readMany({ categories: category });
-    return items;
+    return items.map((item) => item.objID);
+  }
+
+  async getAllBlocked() {
+    const items = await this.blocks.readMany({});
+    return items.map((item) => item.objID);
   }
 
   async delete(_id: ObjectId) {
     await this.blocked(_id);
-    await this.blocks.deleteOne({ _id });
+    await this.blocks.deleteOne({ objID: _id });
     return { msg: "Block deleted!" };
   }
 
@@ -61,16 +66,16 @@ export default class BlockedItemConcept {
     await this.blocked(_id);
     const item = await this.blocks.readOne({ _id });
     if (item === null) {
-      throw new NotFoundError("Item not blocked");
+      throw new NotFoundError("Item not found for ObjID");
     }
     return item.objID;
   }
 
   async getAuthor(_id: ObjectId) {
     await this.blocked(_id);
-    const item = await this.blocks.readOne({ _id });
+    const item = await this.blocks.readOne({ objID: _id });
     if (item === null) {
-      throw new NotFoundError("Item not blocked");
+      throw new NotFoundError("Item not Found for Author!");
     }
     return item.author;
   }
@@ -84,7 +89,9 @@ export default class BlockedItemConcept {
   }
 
   private async blocked(_id: ObjectId) {
-    const item = await this.blocks.readOne({ _id });
+    console.log("blocked");
+    console.log(_id);
+    const item = await this.blocks.readOne({ objID: _id });
     if (item === null) {
       throw new NotFoundError("Item not blocked");
     }

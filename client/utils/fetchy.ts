@@ -5,7 +5,7 @@ export type BodyT = string | number | boolean | null | BodyT[] | { [key: string]
 
 export const createTag = async (tag: string, postID: string) => {
   try {
-    await fetchy(`/api/tags/${tag}/${postID}`, "POST");
+    await fetchy(`/api/posts/${postID}/tags/${tag}`, "POST");
   } catch (e) {
     console.log(e);
     return;

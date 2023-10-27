@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import TimeoutHelp from "@/components/Timeout/TimeoutHelp.vue";
 import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/formatDate";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
+
+import ReportComponent from "@/components/Report/ReportComponent.vue";
 import LikeComponent from "../Like/LikeComponent.vue";
 import TagListComponent from "../Tag/TagListComponent.vue";
 const props = defineProps(["post", "click", "cut"]);
@@ -22,6 +23,10 @@ const deletePost = async () => {
   emit("refreshPosts");
 };
 
+const refreshPost = async () => {
+  emit("refreshPosts");
+};
+
 const updateLikes = async (total: number) => {
   totalLikes.value = total;
 };
@@ -29,9 +34,6 @@ const updateLikes = async (total: number) => {
 
 <template>
   <div>
-    <menu>
-      <TimeoutHelp />
-    </menu>
     <TagListComponent :post="props.post" :cut="props.cut" :creation="false" />
     <p class="author">{{ props.post.author }}</p>
     <div :class="props.click && 'fade-paragraph'">
@@ -40,6 +42,7 @@ const updateLikes = async (total: number) => {
     <div class="like" v-if="!props.click">
       <p>{{ totalLikes }}</p>
       <LikeComponent :type="'posts'" :id="props.post._id" @updateLikes="updateLikes" />
+      <ReportComponent :objType="'posts'" :objID="props.post._id" @refreshPost="refreshPost" />
     </div>
     <div class="base">
       <menu v-if="props.post.author == currentUsername">

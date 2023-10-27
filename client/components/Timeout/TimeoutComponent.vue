@@ -3,6 +3,7 @@ import { useUserStore } from "@/stores/user";
 import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
 import { useTimeoutStore } from "../../stores/timeout";
+import HelpComponent from "../HelpComponent.vue";
 
 const { currentUserID } = storeToRefs(useUserStore());
 const { timeoutUsers } = storeToRefs(useTimeoutStore());
@@ -18,6 +19,9 @@ onBeforeMount(async () => {
 
 <template>
   <div class="blocked">Blocked Until {{ expireDate }}</div>
+  <div class="right">
+    <HelpComponent :msg="'You can not interact until your block expires. You are blocked either due to being a new user or too many reports have been made on your content'" />
+  </div>
 </template>
 
 <style>
@@ -27,5 +31,11 @@ onBeforeMount(async () => {
   font-size: 2em;
   padding: 0.1em;
   text-align: center;
+}
+
+.right {
+  display: flex;
+
+  align-items: flex-end;
 }
 </style>

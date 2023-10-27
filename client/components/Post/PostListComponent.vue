@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import CommentListComponent from "@/components/Comment/CommentListComponent.vue";
+import CommunityComponent from "@/components/Community/CommunityComponent.vue";
+import CreateEditComponent from "@/components/Community/CreateEditComponent.vue";
+import HelpComponent from "@/components/HelpComponent.vue";
 import CreatePostForm from "@/components/Post/CreatePostForm.vue";
 import EditPostForm from "@/components/Post/EditPostForm.vue";
 import PostComponent from "@/components/Post/PostComponent.vue";
@@ -8,12 +11,18 @@ import { useUserStore } from "@/stores/user";
 import { fetchy } from "@/utils/fetchy";
 import { storeToRefs } from "pinia";
 import { onBeforeMount, ref } from "vue";
+import { useBlockStore } from "../../stores/blocked";
+import { useCommunityStore } from "../../stores/community";
 import { useTimeoutStore } from "../../stores/timeout";
 import SearchPostForm from "./SearchPostForm.vue";
 
 const { currentUsername, currentUserID, isLoggedIn } = storeToRefs(useUserStore());
 const { timeoutUsers } = storeToRefs(useTimeoutStore());
-const { updateTimeoutUsers, getExpireDate } = useTimeoutStore();
+const { updateCommunityPosts } = useCommunityStore();
+const { communityIDs } = storeToRefs(useCommunityStore());
+
+const { updateBlockedPosts } = useBlockStore();
+const { blockedPosts } = storeToRefs(useBlockStore());
 
 const loaded = ref(false);
 let posts = ref<Array<Record<string, string>>>([]);
@@ -24,7 +33,7 @@ let display = ref(false);
 let displayPost = ref();
 const props = defineProps(["own"]);
 
-async function getPosts(author?: string) {
+async function getPosts(author?: string, clear?: boolean) {
   let query: Record<string, string> = author !== undefined ? { author } : {};
   let postResults;
   try {
@@ -34,7 +43,11 @@ async function getPosts(author?: string) {
   }
   searchTag.value = "";
   searchAuthor.value = author ? author : "";
+  await updateCommunityPosts();
   posts.value = postResults;
+  if (clear) {
+    display.value = false;
+  }
 }
 
 async function getPostsByTags(tag?: string) {
@@ -70,6 +83,8 @@ onBeforeMount(async () => {
     await getPosts();
   }
   loaded.value = true;
+  await updateCommunityPosts();
+  await updateBlockedPosts();
 });
 </script>
 
@@ -80,7 +95,7 @@ onBeforeMount(async () => {
     </div>
     <div v-else>
       <h2>Create a post:</h2>
-      <CreatePostForm @refreshPosts="getPosts" />
+      <CreatePostForm @refreshPosts="getPosts" @refreshCommunity="updateCommunityPosts" />
     </div>
   </section>
   <div class="row">
@@ -93,7 +108,27 @@ onBeforeMount(async () => {
     <div class="left-column">
       <section class="posts" v-if="loaded && posts.length !== 0">
         <article v-for="post in posts" :key="post._id">
-          <PostComponent :click="true" @click="clickedPost(post)" :cut="true" :post="post" @refreshPosts="getPosts" @editPost="updateEditing" @clickedPost="clickedPost" />
+          <div v-if="!blockedPosts.includes(post._id)">
+            <div v-if="communityIDs.includes(post._id)">
+              <CommunityComponent :post="post" :click="true" :cut="true" @click="clickedPost(post)" @refreshPosts="getPosts" />
+            </div>
+            <div v-else>
+              <PostComponent
+                :click="true"
+                @click="clickedPost(post)"
+                :cut="true"
+                :post="post"
+                @refreshPosts="getPosts"
+                @refreshCommunity="updateCommunityPosts"
+                @editPost="updateEditing"
+                @clickedPost="clickedPost"
+              />
+            </div>
+          </div>
+          <div v-else class="help">
+            <p>Blocked Post!</p>
+            <HelpComponent :msg="'Number of Reports of the Post Exceeded Cap. Have verified users approve/disapprove post'" />
+          </div>
         </article>
       </section>
       <p v-else-if="loaded">No posts found</p>
@@ -101,9 +136,15 @@ onBeforeMount(async () => {
     </div>
     <div class="right-column">
       <section v-if="display">
-        <PostComponent :click="false" v-if="editing !== displayPost._id" :cut="false" :post="displayPost" @refreshPosts="getPosts" @editPost="updateEditing" />
-        <EditPostForm :post="displayPost" v-else @refreshPosts="getPosts" @editPost="updateEditing" />
-        <CommentListComponent :own="props.own" :post="displayPost" :timeout="timeoutUsers.includes(currentUserID)" />
+        <div v-if="communityIDs.includes(displayPost._id)">
+          <CommunityComponent :post="displayPost" :click="false" :cut="false" @click="clickedPost(displayPost)" @refreshPosts="getPosts" />
+          <CreateEditComponent :post="displayPost" @refreshEdits="updateCommunityPosts" @refreshPosts="getPosts" />
+        </div>
+        <div v-else>
+          <PostComponent v-if="editing !== displayPost._id" :click="false" :cut="false" :post="displayPost" @refreshPosts="getPosts" @editPost="updateEditing" />
+          <EditPostForm v-else :post="displayPost" @refreshPosts="getPosts" @editPost="updateEditing" />
+          <CommentListComponent :own="props.own" :post="displayPost" :timeout="timeoutUsers.includes(currentUserID)" />
+        </div>
       </section>
       <p v-else>No Post Clicked</p>
     </div>
@@ -122,6 +163,16 @@ p,
 .row {
   margin: 0 auto;
   max-width: 60em;
+}
+
+.help {
+  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  padding: 0;
+  margin: 0;
+  align-items: flex-end;
 }
 
 article {

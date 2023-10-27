@@ -6,18 +6,12 @@ const content = ref("");
 const props = defineProps(["tags"]);
 
 const addTag = async (content: string) => {
-  console.log(`Adding new tag ${content}`);
-  props.tags.add(content);
-  console.log(props.tags);
-  console.log("Success");
+  props.tags.add(content.toLocaleLowerCase());
   emptyForm();
 };
 
 const deleteTag = async (content: string) => {
-  console.log(`Adding new tag ${content}`);
   props.tags.delete(content);
-  console.log(props.tags);
-  console.log("Success");
 };
 
 const emptyForm = () => {

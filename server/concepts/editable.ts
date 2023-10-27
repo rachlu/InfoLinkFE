@@ -17,6 +17,10 @@ export default class EditableConcept {
     return { msg: "Edit successfully created!", edit: await this.edits.readOne({ _id }) };
   }
 
+  async getAllObjIDs() {
+    return (await this.edits.readMany({})).map((item) => item.editableObj);
+  }
+
   async uniqueEdit(objID: ObjectId, author: ObjectId) {
     const result = await this.edits.readOne({ editableObj: objID, author });
     if (result) {
@@ -25,7 +29,12 @@ export default class EditableConcept {
   }
 
   async getEdits(objID: ObjectId) {
-    const edits = await this.edits.readMany({ editableObj: objID });
+    const edits = await this.edits.readMany(
+      { editableObj: objID },
+      {
+        sort: { dateUpdated: -1 },
+      },
+    );
     return edits;
   }
 
@@ -53,7 +62,7 @@ export default class EditableConcept {
   async notAuthor(author: ObjectId, _id: ObjectId) {
     const comment = await this.edits.readOne({ _id, author });
     if (comment) {
-      throw new NotAllowedError("User is Author of Comment");
+      throw new NotAllowedError("User is Author of Blocked");
     }
   }
 
