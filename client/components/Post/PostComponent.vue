@@ -24,7 +24,7 @@ const deletePost = async () => {
 };
 
 const refreshPost = async () => {
-  emit("refreshPosts");
+  emit("refreshPosts", true);
 };
 
 const updateLikes = async (total: number) => {
