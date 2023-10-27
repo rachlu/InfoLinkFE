@@ -29,6 +29,7 @@ export const useBlockStore = defineStore(
         blockedEdits.value = [];
       }
     };
+    setInterval(async () => await updateBlockedPosts(), 600);
 
     return {
       blockedPosts,
